@@ -137,7 +137,7 @@ class Crawler
      */
     private function getDuration(float $endTime, float $startTime) : float
     {
-        return round(($endTime - $startTime) * 1000, 2);
+        return round($endTime - $startTime, 2);
     }
 
     /**
