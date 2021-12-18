@@ -38,7 +38,7 @@ class Crawler
 
     public function __construct($url, $linksToTraverse)
     {
-        $this->url = $url;
+        $this->url             = $url;
         $this->linksToTraverse = $linksToTraverse;
     }
 
@@ -54,22 +54,21 @@ class Crawler
         curl_setopt($curlHandler, CURLOPT_URL, $url);
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);
         if ($linksToTraverse <= $this->linksToTraverse) {
-            $this->crawled[$linksToTraverse]['url'] = $url;
             $startTime = microtime(true);
             $content = curl_exec($curlHandler);
             $endTime = microtime(true);
 
-            $this->crawled[$linksToTraverse][self::TIME] = $this->getDuration($endTime, $startTime);
-            $this->crawled[$linksToTraverse][self::STATUS_CODE] = $this->getStatusCode($curlHandler);
-
-            curl_close($curlHandler);
-            $this->crawled[$linksToTraverse][self::TITLE] = $this->getTitle($content);
-            $this->crawled[$linksToTraverse][self::WORD] = $this->getWord($content);
+            $this->crawled[$linksToTraverse][self::URL]           = $url;
+            $this->crawled[$linksToTraverse][self::TIME]          = $this->getDuration($endTime, $startTime);
+            $this->crawled[$linksToTraverse][self::STATUS_CODE]   = $this->getStatusCode($curlHandler);
+            $this->crawled[$linksToTraverse][self::TITLE]         = $this->getTitle($content);
+            $this->crawled[$linksToTraverse][self::WORD]          = $this->getWord($content);
             $this->crawled[$linksToTraverse][self::INTERNAL_PAGE] = $links = $this->getInternalPages($content);
             $this->crawled[$linksToTraverse][self::EXTERNAL_PAGE] = $this->getExternalPages($content);
-            $this->crawled[$linksToTraverse][self::IMAGE] = $this->getImages($content);
+            $this->crawled[$linksToTraverse][self::IMAGE]         = $this->getImages($content);
 
-            // set global link to traverse through
+            curl_close($curlHandler);
+            // set links to be traversed by first/home page
             if (count($this->links) == 0) {
                 $this->links = $links;
             }
@@ -183,7 +182,7 @@ class Crawler
      */
     public function print() : string
     {
-        $output = '<table border="1px">';
+        $output  = '<table border="1px">';
         $output .= '<tr>
                         <th>Url</th>
                         <th>Http Status Code</th>
@@ -196,22 +195,21 @@ class Crawler
                     </tr>';
 
         $stats = [];
-
         for ($linksToTraverse = 0; $linksToTraverse < $this->linksToTraverse; $linksToTraverse++) {
-
-            $url = $this->crawled[$linksToTraverse][self::URL];
-            $statusCode = $this->crawled[$linksToTraverse][self::STATUS_CODE];
-            $images = $this->crawled[$linksToTraverse][self::IMAGE] ?? [];
-            $internalPage = $this->crawled[$linksToTraverse][self::INTERNAL_PAGE] ?? [];
-            $externalPage = $this->crawled[$linksToTraverse][self::EXTERNAL_PAGE] ?? [];
-            $time = $this->crawled[$linksToTraverse][self::TIME];
-            $stats[self::WORD][] = $wordCount = str_word_count($this->crawled[$linksToTraverse][self::WORD] ?? 0);
+            $url                  = $this->crawled[$linksToTraverse][self::URL];
+            $statusCode           = $this->crawled[$linksToTraverse][self::STATUS_CODE];
+            $images               = $this->crawled[$linksToTraverse][self::IMAGE] ?? [];
+            $internalPage         = $this->crawled[$linksToTraverse][self::INTERNAL_PAGE] ?? [];
+            $externalPage         = $this->crawled[$linksToTraverse][self::EXTERNAL_PAGE] ?? [];
+            $time                 = $this->crawled[$linksToTraverse][self::TIME];
+            $stats[self::WORD][]  = $wordCount = str_word_count($this->crawled[$linksToTraverse][self::WORD] ?? 0);
             $stats[self::TITLE][] = $titleLength = strlen($this->crawled[$linksToTraverse][self::TITLE] ?: '');
 
-            $stats[self::IMAGE] = array_merge($stats[self::IMAGE] ?? [], $images);
+            $stats[self::IMAGE]         = array_merge($stats[self::IMAGE] ?? [], $images);
             $stats[self::INTERNAL_PAGE] = array_merge($stats[self::INTERNAL_PAGE] ?? [], $internalPage);
             $stats[self::EXTERNAL_PAGE] = array_merge($stats[self::EXTERNAL_PAGE] ?? [], $externalPage);
-            $stats[self::TIME] = array_merge($stats[self::TIME]  ?? [], [$time]);
+            $stats[self::TIME]          = array_merge($stats[self::TIME] ?? [], [$time]);
+
             $output .= "<tr>
                             <td>{$url}</td>
                             <td>{$statusCode}</td>
@@ -222,19 +220,16 @@ class Crawler
                             <td>{$wordCount}</td>
                             <td>{$titleLength}</td>
                         </td>";
-
-
         }
         $output .= '</table><br/>';
 
 
-        $uniqueImages = count(array_unique($stats[self::IMAGE]));
+        $uniqueImages        = count(array_unique($stats[self::IMAGE]));
         $uniqueInternalLinks = count(array_unique($stats[self::INTERNAL_PAGE]));
         $uniqueExternalLinks = count(array_unique($stats[self::EXTERNAL_PAGE]));
-
-        $avgTime = round(array_sum($stats[self::TIME])/$this->linksToTraverse, 2);
-        $avgWordCount = (int) (array_sum($stats[self::WORD])/$this->linksToTraverse);
-        $avgTitleCount = (int) (array_sum($stats[self::TITLE])/$this->linksToTraverse);
+        $avgTime             = round(array_sum($stats[self::TIME]) / $this->linksToTraverse, 2);
+        $avgWordCount        = (int)(array_sum($stats[self::WORD]) / $this->linksToTraverse);
+        $avgTitleCount       = (int)(array_sum($stats[self::TITLE]) / $this->linksToTraverse);
 
         $output .= "<div>Web Crawl of {$this->url}</div>";
         $output .= "<div>Pages crawled: {$this->linksToTraverse}</div>";
