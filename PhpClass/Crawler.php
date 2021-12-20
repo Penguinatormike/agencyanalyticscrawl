@@ -36,7 +36,7 @@ class Crawler
     /** @var array $crawled */
     private array $crawled = [];
 
-    public function __construct($url, $linksToTraverse)
+    public function __construct(string $url, int $linksToTraverse)
     {
         $this->url             = $url;
         $this->linksToTraverse = $linksToTraverse;
@@ -44,11 +44,11 @@ class Crawler
 
     /**
      * Recursively crawl through $url pages until $linksToTraverse is exceeded
-     * @param $url
-     * @param $linksToTraverse
+     * @param string $url
+     * @param int $linksToTraverse
      * @return void
      */
-    public function crawl($url, $linksToTraverse) : void
+    public function crawl(string $url, int $linksToTraverse) : void
     {
         if ($linksToTraverse <= $this->linksToTraverse) {
             $curlHandler = curl_init();
@@ -153,10 +153,10 @@ class Crawler
      * get words of page, stripping tags that are non-words
      *
      * @link https://stackoverflow.com/a/3485707/2958996
-     * @param $content
+     * @param string $content
      * @return string
      */
-    private function getWord($content) : string
+    private function getWord(string $content) : string
     {
         $search = [
             '@<script[^>]*?>.*?</script>@si',  // Strip out javascript
