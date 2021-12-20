@@ -50,10 +50,10 @@ class Crawler
      */
     public function crawl($url, $linksToTraverse) : void
     {
-        $curlHandler = curl_init();
-        curl_setopt($curlHandler, CURLOPT_URL, $url);
-        curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);
         if ($linksToTraverse <= $this->linksToTraverse) {
+            $curlHandler = curl_init();
+            curl_setopt($curlHandler, CURLOPT_URL, $url);
+            curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);
             $startTime = microtime(true);
             $content = curl_exec($curlHandler);
             $endTime = microtime(true);
@@ -79,7 +79,7 @@ class Crawler
     }
 
     /**
-     * Base function for getting pages
+     * Base function for getting content by regex
      * @param $regex
      * @return array
      */
@@ -152,7 +152,7 @@ class Crawler
     /**
      * get words of page, stripping tags that are non-words
      *
-     * https://stackoverflow.com/a/3485707/2958996
+     * @link https://stackoverflow.com/a/3485707/2958996
      * @param $content
      * @return string
      */
@@ -176,8 +176,7 @@ class Crawler
     }
 
     /**
-     *
-     * Prints table and aggregates
+     * Prints table and aggregates crawled data
      * @return string
      */
     public function print() : string
